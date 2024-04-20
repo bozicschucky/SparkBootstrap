@@ -32,6 +32,18 @@ object Bootstrap2 {
     // Use persist for caching
     val sampleData = df.stat.sampleBy("industry", fractions, seed = 42).persist()
 
+    val actualSumStats = mutable.Map[String, (Double, Double)]().withDefaultValue((0.0, 0.0))
+
+    val actualStats = sampleData.groupBy("industry").agg(
+      mean("experience").alias("actual_mean_experience"),
+      variance("experience").alias("actual_variance_experience")
+    ).as[(String, Double, Double)].collect()
+
+    actualStats.foreach { case (industry, mean, variance) =>
+      val (sumMean, sumVariance) = actualSumStats(industry)
+      actualSumStats(industry) = (sumMean + mean, sumVariance + variance)
+    }
+
     // A mutable map to hold the running sum of means and variances for each category
     val sumStats = mutable.Map[String, (Double, Double)]().withDefaultValue((0.0, 0.0))
 
@@ -54,7 +66,14 @@ object Bootstrap2 {
       }
     }
 
+    //
+    println("Actual Result:")
+    println("Category Mean Variance")
+    actualSumStats.foreach { case (industry, (mean, variance)) =>
+      println(s"$industry $mean $variance")
+    }
     // Calculate and display the average of each quantity by dividing by 1000
+    println("Estimate Result:")
     println("Category Mean Variance")
     sumStats.foreach { case (industry, (sumMean, sumVariance)) =>
       val avgMean = sumMean / times
