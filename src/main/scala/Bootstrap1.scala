@@ -1,18 +1,17 @@
 package com.cs522.team2
 
-import org.apache.spark.sql.{DataFrame, Row, SparkSession}
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 
 import scala.collection.mutable
 
 
-object CSVReaderApp1 {
+object Bootstrap1 {
 
-  val ratio = 0.025
-  val numResamples = 1000
+  val ratio = 0.25
+  val numResamples = 10
   def resample(data: org.apache.spark.sql.DataFrame, numResamples: Int): Unit = {
     val spark = SparkSession.builder.appName("ResampleData").getOrCreate()
-    import spark.implicits._
 
     val map = mutable.HashMap[String, (Int, Int, Int)]()
 
@@ -21,7 +20,7 @@ object CSVReaderApp1 {
       val dataRDD = data.select("industry", "experience").rdd.
         map(row => (row.getString(0), (row.getInt(1), row.getInt(1) * row.getInt(1))))
 
-      val categorySums = dataRDD.reduceByKey((x, y) => (x._1 + y._1, x._2 + y._2)).collect()
+      val categorySums = dataRDD.collect()
 
       categorySums.foreach { case (category, (sum, sum_of_squares)) =>
         if (map.contains(category)) {
@@ -39,9 +38,9 @@ object CSVReaderApp1 {
     }
 
     println(" Map Count " + map.keys.size)
-    map.foreach { case (category, (sum, count, sum_of_squares)) =>
-      println(s"Category: $category, Total Sum: $sum, Total Count: $count, Sum of Squares: $sum_of_squares")
-    }
+//    map.foreach { case (category, (sum, count, sum_of_squares)) =>
+//      println(s"Category: $category, Total Sum: $sum, Total Count: $count, Sum of Squares: $sum_of_squares")
+//    }
 
     val averagesMap = map.map { case (category, (sum, count, sum_of_squares)) =>
       val mean = sum.toDouble / count
@@ -64,7 +63,6 @@ object CSVReaderApp1 {
       .appName("CSV Reader Example")
       .config("spark.master", "local")
       .getOrCreate()
-    import spark.implicits._
 
 
     val filePath = "ResumeNames.csv"

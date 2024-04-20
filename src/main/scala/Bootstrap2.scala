@@ -3,7 +3,7 @@ import org.apache.spark.sql.functions.{mean, variance}
 import scala.collection.mutable
 
 // Define an object CSVReaderApp which will contain the main method to run the program
-object Bootstrap {
+object Bootstrap2 {
   // The main method, which is the entry point of a Scala program
   def main(args: Array[String]): Unit = {
     // Initialize a Spark session, which is the entry point for Spark functionalities
