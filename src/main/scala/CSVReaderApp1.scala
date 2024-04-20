@@ -6,9 +6,10 @@ import org.apache.spark.sql.functions._
 import scala.collection.mutable
 
 
-object CSVReaderApp {
+object CSVReaderApp1 {
 
-
+  val ratio = 0.025
+  val numResamples = 1000
   def resample(data: org.apache.spark.sql.DataFrame, numResamples: Int): Unit = {
     val spark = SparkSession.builder.appName("ResampleData").getOrCreate()
     import spark.implicits._
@@ -74,11 +75,11 @@ object CSVReaderApp {
 
     val data = df.withColumn("experience", col("experience").cast("integer"))
       .withColumn("industry", col("industry").cast("string"))
-    val ratio = 0.002
+
     val fractionMap = data.select("industry").distinct().collect().map(row => (row.getAs[String]("industry"), ratio)).toMap
     val sampledData = data.stat.sampleBy("industry", fractionMap, seed = 42)
 
-    resample(sampledData, 100)
+    resample(sampledData, numResamples)
     spark.stop()
   }
 }
